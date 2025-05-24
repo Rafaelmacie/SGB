@@ -8,13 +8,29 @@ usuarios = []
 emprestimos = []
 
 def exibir_menu():
+    print("\n=== Bem-vindo ao Sistema de Gestão de Biblioteca ===")
+    print("Você é:")
+    print("1. Administrador")
+    print("2. Usuário comum")
+
+    perfil = input("Escolha seu perfil (1 ou 2): ")
+
+    if perfil == "1":
+        menu_administrador()
+    elif perfil == "2":
+        menu_usuario()
+    else:
+        print("Perfil inválido.")
+
+def menu_administrador():
     while True:
-        print("\n--- Sistema de Gestão de Biblioteca ---")
+        print("\n--- Menu do Administrador ---")
         print("1. Cadastrar Livro")
         print("2. Cadastrar Usuário")
         print("3. Realizar Empréstimo")
         print("4. Realizar Devolução")
         print("5. Relatórios")
+        print("6. Voltar ao menu inicial")
         print("0. Sair")
 
         opcao = input("Escolha uma opção: ")
@@ -29,9 +45,36 @@ def exibir_menu():
             realizar_devolucao()
         elif opcao == "5":
             exibir_relatorios()
+        elif opcao == "6":
+            return exibir_menu()
         elif opcao == "0":
             print("Encerrando o sistema.")
-            break
+            exit()
+        else:
+            print("Opção inválida.")
+
+def menu_usuario():
+    while True:
+        print("\n--- Menu do Usuário ---")
+        print("1. Cadastrar Usuário")
+        print("2. Realizar Empréstimo")
+        print("3. Realizar Devolução")
+        print("4. Voltar ao menu inicial")
+        print("0. Sair")
+
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            cadastrar_usuario()
+        elif opcao == "2":
+            realizar_emprestimo()
+        elif opcao == "3":
+            realizar_devolucao()
+        elif opcao == "4":
+            return exibir_menu()
+        elif opcao == "0":
+            print("Encerrando o sistema.")
+            exit()
         else:
             print("Opção inválida.")
 
