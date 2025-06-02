@@ -11,31 +11,31 @@ from servicos.biblioteca_service import (
     realizar_devolucao,
     exibir_relatorios,
     realizar_emprestimo_usuario,
-    realizar_devolucao_usuario,
+    realizar_devolucao_usuario
 )
 
-# Estruturas de dados em memória
-livros = []
-usuarios = []
-emprestimos = []
-
 # Menu inicial de seleção de perfil
-def exibir_menu():
-    print("\n=== Bem-vindo ao Sistema de Gestão de Biblioteca ===")
-    print("Logar como:")
-    print("1. Administrador")
-    print("2. Usuário comum")
+def exibir_menu(livros, usuarios, emprestimos):
+    perfil = 1
 
-    perfil = input("Escolha seu perfil (1 ou 2): ")
+    while perfil != 0:
+        print("\n=== Bem-vindo ao Sistema de Gestão de Biblioteca ===")
+        print("Logar como:")
+        print("1. Administrador")
+        print("2. Usuário comum")
+        print("0. Finalizar programa")
 
-    if perfil == "1":
-        verif_admin()
-    elif perfil == "2":
-        verif_user()
-    else:
-        print("Perfil inválido.")
+        perfil = input("Escolha seu perfil (1 ou 2): ")
 
-def verif_admin():
+        if perfil == "1":
+            verif_admin(livros, usuarios, emprestimos)
+        elif perfil == "2":
+            verif_user(livros, usuarios, emprestimos)
+        else:
+            print("Perfil inválido.")
+
+# Verificação de acesso para administrador
+def verif_admin(livros, usuarios, emprestimos):
     tentativas = 0
     admin = input("\nDigite seu nome: ")
     senhaAdmin = 123
@@ -43,20 +43,18 @@ def verif_admin():
 
     while senha != senhaAdmin:
         senha = int(input("\nDigite sua senha: "))
-
         if senha != senhaAdmin:
             print("Senha incorreta")
             tentativas += 1
-
-            if(tentativas == 3):
+            if tentativas == 3:
                 print("\nLimite de tentativas excedido. O programa será finalizado")
                 return
     
     print(f"\nBem-vindo, {admin}!")
-    menu_administrador()
-    return
+    menu_administrador(livros, usuarios, emprestimos)
 
-def verif_user():
+# Verificação e login de usuário comum
+def verif_user(livros, usuarios, emprestimos):
     matricula = input("\nDigite sua matrícula: ")
     usuario = next((u for u in usuarios if u.matricula == matricula), None)
 
@@ -64,16 +62,14 @@ def verif_user():
         print(f"\nBem-vindo, {usuario.nome}!")
     else:
         print("\nUsuário não encontrado. Vamos realizar seu cadastro.")
-        cadastrar_usuario(usuarios, Usuario)
-        usuario = usuarios[-1]  # Último usuário cadastrado
+        cadastrar_usuario(usuarios, Usuario, livros, emprestimos)
+        usuario = usuarios[-1]
         print("Cadastro concluído.")
 
-    # Passa o usuário logado para o menu do usuário
-    menu_usuario(usuario)
+    menu_usuario(usuario, livros, usuarios, emprestimos)
 
-
-# Menu exclusivo do administrador com todas as funcionalidades
-def menu_administrador():
+# Menu exclusivo do administrador
+def menu_administrador(livros, usuarios, emprestimos):
     while True:
         print("\n--- Menu do Administrador ---")
         print("1. Cadastrar Livro")
@@ -87,17 +83,17 @@ def menu_administrador():
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
-            cadastrar_livro(livros, Livro)
+            cadastrar_livro(livros, Livro, usuarios, emprestimos)
         elif opcao == "2":
-            cadastrar_usuario(usuarios, Usuario)
+            cadastrar_usuario(usuarios, Usuario, livros, emprestimos)
         elif opcao == "3":
             realizar_emprestimo(usuarios, livros, emprestimos)
         elif opcao == "4":
-            realizar_devolucao(livros, emprestimos)
+            realizar_devolucao(livros, emprestimos, usuarios)
         elif opcao == "5":
             exibir_relatorios(livros, emprestimos)
         elif opcao == "6":
-            return exibir_menu()
+            return exibir_menu(livros, usuarios, emprestimos)
         elif opcao == "0":
             print("\nEncerrando o sistema.")
             exit()
@@ -105,7 +101,7 @@ def menu_administrador():
             print("Opção inválida.")
 
 # Menu restrito ao usuário comum
-def menu_usuario(usuario_logado):
+def menu_usuario(usuario_logado, livros, usuarios, emprestimos):
     while True:
         print(f"\n--- Menu do Usuário: {usuario_logado.nome} ---")
         print("1. Realizar Empréstimo")
@@ -116,11 +112,11 @@ def menu_usuario(usuario_logado):
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
-            realizar_emprestimo_usuario(usuario_logado, livros, emprestimos)
+            realizar_emprestimo_usuario(usuario_logado, livros, emprestimos, usuarios)
         elif opcao == "2":
-            realizar_devolucao_usuario(usuario_logado, livros, emprestimos)
+            realizar_devolucao_usuario(usuario_logado, livros, emprestimos, usuarios)
         elif opcao == "3":
-            return exibir_menu()
+            return exibir_menu(livros, usuarios, emprestimos)
         elif opcao == "0":
             print("\nEncerrando o sistema.")
             exit()

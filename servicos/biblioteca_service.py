@@ -1,10 +1,9 @@
-# servicos/biblioteca_service.py
-
 from datetime import datetime, timedelta
 from modelos.Emprestimo import Emprestimo
+from dados.persistencia import salvar_tudo  # <- Importa persistência
 
 # Função para cadastrar um novo livro
-def cadastrar_livro(livros, Livro):
+def cadastrar_livro(livros, Livro, usuarios, emprestimos):
     print("\n--- Cadastro de Livro ---")
     titulo = input("Título: ")
     autor = input("Autor: ")
@@ -14,15 +13,15 @@ def cadastrar_livro(livros, Livro):
     livro = Livro(titulo, autor, isbn, ano, quantidade)
     livros.append(livro)
     print("Livro cadastrado com sucesso.")
+    salvar_tudo(livros, usuarios, emprestimos)  # <- Salva após cadastro
 
 # Função para cadastrar um novo usuário
-def cadastrar_usuario(usuarios, Usuario):
+def cadastrar_usuario(usuarios, Usuario, livros, emprestimos):
     print("\n--- Cadastro de Usuário ---")
     matricula = input("Matrícula: ")
 
-    # Verifica se já existe um usuário com essa matrícula
     if any(u.matricula == matricula for u in usuarios):
-        print("Erro: Já existe um usuário com essa matrícula.")
+        print("Já existe um usuário com essa matrícula.")
         return
 
     nome = input("Nome: ")
@@ -30,9 +29,9 @@ def cadastrar_usuario(usuarios, Usuario):
     usuario = Usuario(nome, matricula, curso)
     usuarios.append(usuario)
     print("Usuário cadastrado com sucesso.")
+    salvar_tudo(livros, usuarios, emprestimos)
 
-
-# Função para realizar empréstimo com validações
+# Empréstimo pelo administrador
 def realizar_emprestimo(usuarios, livros, emprestimos):
     print("\n--- Empréstimo de Livro ---")
     matricula = input("Matrícula do usuário: ")
@@ -42,7 +41,6 @@ def realizar_emprestimo(usuarios, livros, emprestimos):
         print("Usuário não encontrado.")
         return
 
-    # Regra: Máximo de 3 livros por usuário
     emprestimos_usuario = [e for e in emprestimos if e.usuario_id == matricula and e.data_devolucao is None]
     if len(emprestimos_usuario) >= 3:
         print("Usuário já atingiu o limite de 3 empréstimos.")
@@ -55,21 +53,20 @@ def realizar_emprestimo(usuarios, livros, emprestimos):
         print("Livro não encontrado.")
         return
 
-    # Regra: Só emprestar se houver exemplares
     if livro.quantidade <= 0:
         print("Não há exemplares disponíveis.")
         return
 
-    # Registrar empréstimo
     data_emprestimo = datetime.now().date()
     data_prevista = data_emprestimo + timedelta(days=7)
     emprestimo = Emprestimo(matricula, isbn, data_emprestimo, data_prevista)
     emprestimos.append(emprestimo)
     livro.quantidade -= 1
     print(f"Empréstimo realizado. Devolver até {data_prevista}.")
+    salvar_tudo(livros, usuarios, emprestimos)
 
-# Função para realizar devolução com verificação de atraso
-def realizar_devolucao(livros, emprestimos):
+# Devolução pelo administrador
+def realizar_devolucao(livros, emprestimos, usuarios):
     print("\n--- Devolução de Livro ---")
     matricula = input("Matrícula do usuário: ")
     isbn = input("ISBN do livro: ")
@@ -84,14 +81,15 @@ def realizar_devolucao(livros, emprestimos):
                 print("Livro devolvido com atraso.")
             else:
                 print("Livro devolvido no prazo.")
+            salvar_tudo(livros, usuarios, emprestimos)
             return
 
     print("Empréstimo não encontrado ou já devolvido.")
 
-# Função para exibir os relatórios
+# Relatórios
 def exibir_relatorios(livros, emprestimos):
     print("\n--- Relatórios ---")
-    
+
     print("\nLivros emprestados:")
     for e in emprestimos:
         if e.data_devolucao is None:
@@ -108,9 +106,8 @@ def exibir_relatorios(livros, emprestimos):
         if l.quantidade > 0:
             print(f"{l.titulo} (ISBN: {l.isbn}) - {l.quantidade} disponíveis")
 
-
-# Função para o usuário commum realizar os próprios empréstimos
-def realizar_emprestimo_usuario(usuario, livros, emprestimos):
+# Empréstimo pelo próprio usuário
+def realizar_emprestimo_usuario(usuario, livros, emprestimos, usuarios):
     print("\n--- Empréstimo de Livro ---")
     emprestimos_usuario = [e for e in emprestimos if e.usuario_id == usuario.matricula and e.data_devolucao is None]
     if len(emprestimos_usuario) >= 3:
@@ -134,10 +131,10 @@ def realizar_emprestimo_usuario(usuario, livros, emprestimos):
     emprestimos.append(emprestimo)
     livro.quantidade -= 1
     print(f"Empréstimo realizado. Devolver até {data_prevista}.")
+    salvar_tudo(livros, usuarios, emprestimos)
 
-
-# Função para o usuário commum realizar as próprias devoluções dos livros
-def realizar_devolucao_usuario(usuario, livros, emprestimos):
+# Devolução pelo próprio usuário
+def realizar_devolucao_usuario(usuario, livros, emprestimos, usuarios):
     print("\n--- Devolução de Livro ---")
     isbn = input("ISBN do livro: ")
     for e in emprestimos:
@@ -150,6 +147,7 @@ def realizar_devolucao_usuario(usuario, livros, emprestimos):
                 print("Livro devolvido com atraso.")
             else:
                 print("Livro devolvido no prazo.")
+            salvar_tudo(livros, usuarios, emprestimos)
             return
     print("Nenhum empréstimo ativo encontrado para este livro.")
 
